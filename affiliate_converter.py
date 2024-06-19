@@ -4,16 +4,13 @@ from aliexpress_api import AliexpressApi, models
 from dotenv import load_dotenv
 import os
 
-# Set up logging
 logging.basicConfig(level=logging.DEBUG)
 
-# Load environment variables from .env file
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 ALIEXPRESS_KEY = os.getenv('ALIEXPRESS_KEY')
 ALIEXPRESS_SECRET = os.getenv('ALIEXPRESS_SECRET')
 ALIEXPRESS_TRACKING_ID = os.getenv('ALIEXPRESS_TRACKING_ID')
 
-# Initialize the AliExpress API with your credentials
 aliexpress = AliexpressApi(ALIEXPRESS_KEY, ALIEXPRESS_SECRET, models.Language.EN, models.Currency.USD, ALIEXPRESS_TRACKING_ID)
 
 def generate_affiliate_link(source_url):
@@ -42,7 +39,6 @@ def is_aliexpress_affiliate_link(url, tracking_id):
     return any(part in url for part in [tracking_id, 's.click.aliexpress.com'])
 
 def convert_affiliate_links(content):
-    # Regex to identify links in the message
     url_pattern = re.compile(r'https?://[^\s]+')
     urls = url_pattern.findall(content)
 

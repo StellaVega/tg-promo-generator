@@ -21,7 +21,6 @@ async def handle_forwarded_message(update: Update, context: ContextTypes.DEFAULT
     if content:
         logger.info(f"Received forwarded message: {content}")
 
-        # Extract URL from the message content
         url_pattern = re.compile(r'https?://[^\s]+')
         url_match = url_pattern.search(content)
         if not url_match:
@@ -30,13 +29,11 @@ async def handle_forwarded_message(update: Update, context: ContextTypes.DEFAULT
 
         url = url_match.group(0)
 
-        # Generate the affiliate link
         affiliate_link = generate_affiliate_link(url)
         if not affiliate_link:
             logger.error("Failed to generate affiliate link.")
             return
 
-        # Fetch product details
         product_details = fetch_aliexpress_product_details(url)
 
         if product_details:
@@ -44,7 +41,6 @@ async def handle_forwarded_message(update: Update, context: ContextTypes.DEFAULT
             product_title = product_details['product_title']
             small_images = product_details['small_image_urls']
 
-            # Add the Telegram photo URL to the list of small images
             if message.photo:
                 telegram_photo_url = await context.bot.get_file(message.photo[-1].file_id)
                 small_images.append(telegram_photo_url.file_path)
@@ -55,7 +51,6 @@ async def handle_forwarded_message(update: Update, context: ContextTypes.DEFAULT
             logger.info(f"Product Small Images: {small_images}")
             logger.info(f"Affiliate Link: {affiliate_link}")
 
-            # Ensure temporary_storage is correctly initialized before appending
             temporary_storage[message.message_id] = {
                 'original': content,
                 'converted': convert_affiliate_links(content),
@@ -194,30 +189,4 @@ async def confirm_publish(update: Update, context: ContextTypes.DEFAULT_TYPE, me
 async def confirm_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE, message_id: int) -> None:
     if message_id in temporary_storage:
         chat_id = temporary_storage[message_id]['chat_id']
-        message_ids = temporary_storage[message_id]['message_ids']
-        bot = context.bot
-        for msg_id in message_ids:
-            try:
-                await bot.delete_message(chat_id=chat_id, message_id=msg_id)
-            except Exception as e:
-                logger.error(f"Failed to delete message {msg_id}: {e}")
-        del temporary_storage[message_id]
-        await bot.send_message(chat_id, text='All related messages have been deleted.')
-
-async def clear_history(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.message.chat_id
-    bot = context.bot
-
-    async for message in bot.get_chat(chat_id).iter_history():
-        try:
-            await bot.delete_message(chat_id=chat_id, message_id=message.message_id)
-        except Exception as e:
-            logger.error(f"Failed to delete message {message.message_id}: {e}")
-
-def register_handlers(application):
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("clear", clear_history))
-    application.add_handler(MessageHandler(filters.FORWARDED, handle_forwarded_message))
-    application.add_handler(CallbackQueryHandler(handle_button_click))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, receive_new_text))
-    application.add_handler(CallbackQueryHandler(handle_image_selection, pattern="^(select_image|remove_image):"))
+        message_ids = temporary_storage### handlers_img.py

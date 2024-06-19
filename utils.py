@@ -6,7 +6,6 @@ from config import GIT_TOKEN, GITHUB_REPOSITORY, RSS_FEED_PATH, CACHE_DIR
 
 logger = logging.getLogger(__name__)
 
-# Store message content temporarily for editing and preview
 temporary_storage = {}
 
 def update_github_file(content):
@@ -16,21 +15,18 @@ def update_github_file(content):
         "Accept": "application/vnd.github.v3+json"
     }
 
-    # Get the SHA of the existing file
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         sha = response.json()['sha']
     else:
         sha = None
 
-    # Prepare the data for the commit
     data = {
         "message": "Update RSS feed",
         "content": content,
         "sha": sha
     }
 
-    # Commit the new file to the repository
     response = requests.put(url, json=data, headers=headers)
     if response.status_code in [200, 201]:
         logger.info("RSS feed updated on GitHub.")

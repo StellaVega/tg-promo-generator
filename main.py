@@ -15,9 +15,9 @@ logger = logging.getLogger()
 logger.addFilter(CustomFilter())
 
 # Set specific log levels for certain modules
-logging.getLogger('httpcore').setLevel(logging.WARNING)  # Suppress detailed debug logs from httpcore
-logging.getLogger('telegram.ext.ExtBot').setLevel(logging.INFO)  # Keep info level logs from ExtBot
-logging.getLogger('httpx').setLevel(logging.WARNING)  # Suppress informational logs from httpx
+logging.getLogger('httpcore').setLevel(logging.WARNING)
+logging.getLogger('telegram.ext.ExtBot').setLevel(logging.INFO)
+logging.getLogger('httpx').setLevel(logging.WARNING)
 
 def main():
     application = ApplicationBuilder().token(TELEGRAM_API_TOKEN).build()
