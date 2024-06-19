@@ -1,7 +1,7 @@
 import logging
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
-from utils import temporary_storage
+from utils import temporary_storage  # Add this line to import temporary_storage
 
 logger = logging.getLogger(__name__)
 
@@ -10,8 +10,8 @@ async def replace_image(update: Update, context: ContextTypes.DEFAULT_TYPE, mess
         small_images = temporary_storage[message_id].get('small_images', [])
         current_photo = temporary_storage[message_id].get('photo')
         logger.info(f"Current photo: {current_photo}")
-        for idx, img_url in enumerate(small_images):
-            if img_url != current_photo:
+        for idx, img_id in enumerate(small_images):
+            if img_id != current_photo:
                 callback_data_select = f"select_image:{message_id}:{idx}"
                 callback_data_remove = f"remove_image:{message_id}:{idx}"
 
@@ -20,10 +20,10 @@ async def replace_image(update: Update, context: ContextTypes.DEFAULT_TYPE, mess
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 try:
-                    await update.callback_query.message.reply_photo(photo=img_url, reply_markup=reply_markup)
-                    logger.info(f"Displayed image option: {img_url}")
+                    await update.callback_query.message.reply_photo(photo=img_id, reply_markup=reply_markup)
+                    logger.info(f"Displayed image option: {img_id}")
                 except Exception as e:
-                    logger.error(f"Error displaying image option {img_url}: {e}")
+                    logger.error(f"Error displaying image option {img_id}: {e}")
 
 async def handle_image_selection(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query

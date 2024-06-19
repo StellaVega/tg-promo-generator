@@ -1,3 +1,5 @@
+## affiliate_converter.py
+
 import logging
 import re
 from aliexpress_api import AliexpressApi, models

@@ -37,14 +37,18 @@ async def handle_forwarded_message(update: Update, context: ContextTypes.DEFAULT
         product_details = fetch_aliexpress_product_details(url)
 
         if product_details:
-            product_id = product_details['product_id']
-            product_title = product_details['product_title']
-            small_images = product_details['small_image_urls']
+            product_id = product_details.get('product_id')
+            product_title = product_details.get('product_title')
+            small_images = product_details.get('product_small_image_urls', [])
+
+            if not product_id or not product_title:
+                logger.error("Incomplete product details received from AliExpress.")
+                return
 
             if message.photo:
-                telegram_photo_url = await context.bot.get_file(message.photo[-1].file_id)
-                small_images.append(telegram_photo_url.file_path)
-                logger.info(f"Telegram Photo URL: {telegram_photo_url.file_path}")
+                telegram_photo_id = message.photo[-1].file_id
+                small_images.append(telegram_photo_id)
+                logger.info(f"Telegram Photo ID: {telegram_photo_id}")
 
             logger.info(f"Product ID: {product_id}")
             logger.info(f"Product Title: {product_title}")
@@ -54,7 +58,7 @@ async def handle_forwarded_message(update: Update, context: ContextTypes.DEFAULT
             temporary_storage[message.message_id] = {
                 'original': content,
                 'converted': convert_affiliate_links(content),
-                'photo': message.photo[-1].file_id if message.photo else None,
+                'photo': telegram_photo_id if message.photo else None,
                 'chat_id': message.chat_id,
                 'message_ids': [message.message_id],
                 'product_id': product_id,
@@ -189,4 +193,17 @@ async def confirm_publish(update: Update, context: ContextTypes.DEFAULT_TYPE, me
 async def confirm_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE, message_id: int) -> None:
     if message_id in temporary_storage:
         chat_id = temporary_storage[message_id]['chat_id']
-        message_ids = temporary_storage### handlers_img.py
+        message_ids = temporary_storage[message_id]['message_ids']
+        for msg_id in message_ids:
+            try:
+                await context.bot.delete_message(chat_id=chat_id, message_id=msg_id)
+            except Exception as e:
+                logger.error(f"Failed to delete message {msg_id}: {e}")
+        del temporary_storage[message_id]
+        await context.bot.send_message(chat_id, text='All related messages have been deleted.')
+
+def register_handlers(application):
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.FORWARDED, handle_forwarded_message))
+    application.add_handler(CallbackQueryHandler(handle_button_click))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, receive_new_text))
